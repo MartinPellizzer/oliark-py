@@ -5,7 +5,37 @@ window = pygame.display.set_mode((800, 600))
 font = pygame.font.Font(None, 48)
 clock = pygame.time.Clock()
 
-grid_size = 8
+level = {
+    'rows_num': 99,
+    'cols_num': 99,
+    'tiles': [],
+}
+for row_i in range(level['rows_num']):
+    col = []
+    for col_i in range(level['cols_num']):
+        col.append(None)
+    level['tiles'].append(col)
+
+def level_load():
+    with open('level.txt') as f:
+        content = f.read()
+    rows = content.split()
+    for row_i, row in enumerate(rows):
+        for col_i, tile in enumerate(row.split(',')):
+            if tile == 'None':
+                level['tiles'][row_i][col_i] = None
+            else:
+                level['tiles'][row_i][col_i] = tile
+
+'''
+print(level['tiles'])
+level['tiles'][0][0] = 1
+level['tiles'][0][1] = 1
+level['tiles'][0][2] = 1
+level['tiles'][0][3] = 1
+level['tiles'][1][0] = 1
+level['tiles'][1][1] = 1
+'''
 
 mouse = {
     'pos_x': 0,
@@ -100,6 +130,8 @@ def main_input():
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 running = False
+            if event.key == pygame.K_l:
+                level_load()
         if event.type == pygame.MOUSEWHEEL:
             if event.y > 0:
                 if camera['scale'] < 16:
@@ -111,7 +143,8 @@ def main_input():
     keys = pygame.key.get_pressed()
     if keys[pygame.K_RIGHT]:
         if player['moving'] == False:
-            if player['col_i'] < grid_size - 1:
+            if level['tiles'][player['row_i']][player['col_i']+1] != None:
+            # if player['col_i'] < level['cols_num'] - 1:
                 player['direction_cur'] = 'right'
                 print(player['direction_cur'])
                 player['moving'] = True
@@ -127,7 +160,8 @@ def main_input():
                 player['col_i'] += 1
     if keys[pygame.K_LEFT]:
         if player['moving'] == False:
-            if player['col_i'] > 0:
+            if level['tiles'][player['row_i']][player['col_i']-1] != None:
+            # if player['col_i'] > 0:
                 player['direction_cur'] = 'left'
                 print(player['direction_cur'])
                 player['moving'] = True
@@ -143,7 +177,8 @@ def main_input():
                 player['col_i'] -= 1
     if keys[pygame.K_DOWN]:
         if player['moving'] == False:
-            if player['row_i'] < grid_size - 1:
+            if level['tiles'][player['row_i']+1][player['col_i']] != None:
+            # if player['row_i'] < level['rows_num'] - 1:
                 player['direction_cur'] = 'down'
                 print(player['direction_cur'])
                 player['moving'] = True
@@ -159,7 +194,8 @@ def main_input():
                 player['row_i'] += 1
     if keys[pygame.K_UP]:
         if player['moving'] == False:
-            if player['row_i'] > 0:
+            if level['tiles'][player['row_i']-1][player['col_i']] != None:
+            # if player['row_i'] > 0:
                 print(player['direction_cur'])
                 player['direction_cur'] = 'up'
                 player['moving'] = True
@@ -255,11 +291,12 @@ def main_render_debug():
 def main_render_map():
     offset_x = tile['size']
     offset_y = tile['size']
-    for row in range(grid_size):
-        for col in range(grid_size):
-            x = col * offset_x + camera['pos_x']
-            y = row * offset_y + camera['pos_y']
-            window.blit(tile['sprite'], (x, y))
+    for row_i in range(level['rows_num']):
+        for col_i in range(level['cols_num']):
+            if level['tiles'][row_i][col_i] != None:
+                x = col_i * offset_x + camera['pos_x']
+                y = row_i * offset_y + camera['pos_y']
+                window.blit(tile['sprite'], (x, y))
 
 def player_pos_x_get(col_i):
     x = col_i * tile['size'] + camera['pos_x']
