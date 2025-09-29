@@ -1,7 +1,9 @@
 import pygame
 
 pygame.init()
-window = pygame.display.set_mode((800, 600))
+window_width = 800
+window_height = 600
+window = pygame.display.set_mode((window_width, window_height))
 font = pygame.font.Font(None, 48)
 clock = pygame.time.Clock()
 
@@ -27,6 +29,7 @@ def level_load():
             else:
                 level['tiles'][row_i][col_i] = tile
 
+level_load()
 '''
 print(level['tiles'])
 level['tiles'][0][0] = 1
@@ -50,10 +53,11 @@ mouse = {
 }
 
 camera = {
-    'pos_x': 100,
-    'pos_y': 100,
+    'pos_x': 0,
+    'pos_y': 0,
     'scale': 4,
 }
+
 
 tile = {
     'pixels': 16,
@@ -121,6 +125,9 @@ keyboard = {
     'key_arrow_left_pressed': 0,
     'key_arrow_right_pressed': 0,
 }
+
+camera['pos_x'] = player['pos_x'] + window_width // 2
+camera['pos_y'] = player['pos_y'] + window_height // 2
 
 def main_input():
     global running
@@ -228,8 +235,19 @@ def mouse_pan():
     camera['pos_y'] = mouse['pan_camera_start_y'] + (mouse['pos_y'] - mouse['pan_mouse_start_y'])
 
 def main_update():
+    # camera
+    # camera['pos_x'] = player['pos_x'] + window_width // 2
+    # camera['pos_y'] = player['pos_y'] + window_height // 2
+    # print(camera['pos_x'], camera['pos_y'])
+    # print(player['pos_x'], player['pos_y'])
+    # camera['pos_x'] += 0.1
+    # camera['pos_y'] += 0.1
+    # camera['pos_x'] = player['pos_x']
+    # camera['pos_y'] = player['pos_y']
+    # level
     tile['size'] = tile['pixels'] * camera['scale']
     tile['sprite'] = pygame.transform.scale(tile['sprite'], (tile['size'], tile['size']))
+    # player
     player['sprite_width'] = 16 * camera['scale']
     player['sprite_height'] = 24 * camera['scale']
     player['sprite_1'] = pygame.transform.scale(player['sprite_1'], (player['sprite_width'], player['sprite_height']))
