@@ -7,11 +7,18 @@ window = pygame.display.set_mode((window_width, window_height))
 font = pygame.font.Font(None, 48)
 clock = pygame.time.Clock()
 
+pan_offset_x = window_width // 2
+pan_offset_y = window_height // 2
+
+################################################################################
+# level
+################################################################################
 level = {
     'rows_num': 99,
     'cols_num': 99,
     'tiles': [],
 }
+
 for row_i in range(level['rows_num']):
     col = []
     for col_i in range(level['cols_num']):
@@ -28,17 +35,7 @@ def level_load():
                 level['tiles'][row_i][col_i] = None
             else:
                 level['tiles'][row_i][col_i] = tile
-
 level_load()
-'''
-print(level['tiles'])
-level['tiles'][0][0] = 1
-level['tiles'][0][1] = 1
-level['tiles'][0][2] = 1
-level['tiles'][0][3] = 1
-level['tiles'][1][0] = 1
-level['tiles'][1][1] = 1
-'''
 
 mouse = {
     'pos_x': 0,
@@ -55,7 +52,7 @@ mouse = {
 camera = {
     'pos_x': 0,
     'pos_y': 0,
-    'scale': 4,
+    'scale': 1,
 }
 
 
@@ -126,9 +123,6 @@ keyboard = {
     'key_arrow_right_pressed': 0,
 }
 
-camera['pos_x'] = player['pos_x'] + window_width // 2
-camera['pos_y'] = player['pos_y'] + window_height // 2
-
 def main_input():
     global running
     for event in pygame.event.get():
@@ -156,8 +150,8 @@ def main_input():
                 print(player['direction_cur'])
                 player['moving'] = True
                 player['moving_start_time'] = pygame.time.get_ticks()
-                player['pos_x_start'] = player_pos_x_get(player['col_i'])
-                player['pos_x_end'] = player_pos_x_get(player['col_i'] + 1)
+                player['pos_x_start'] = calculate_pos_x(tile['size'] * player['col_i'])
+                player['pos_x_end'] = calculate_pos_x(tile['size'] * (player['col_i'] + 1))
                 player['pos_y_start'] = player_pos_y_get(player['row_i'])
                 player['pos_y_end'] = player_pos_y_get(player['row_i'])
                 player['animation'] = True
@@ -236,6 +230,7 @@ def mouse_pan():
 
 def main_update():
     # camera
+    camera['pos_x'] = player['pos_x']
     # camera['pos_x'] = player['pos_x'] + window_width // 2
     # camera['pos_y'] = player['pos_y'] + window_height // 2
     # print(camera['pos_x'], camera['pos_y'])
@@ -306,18 +301,26 @@ def main_render_debug():
     text_surface = font.render(f'''FPS: {fps:.2f}''', True, '0xFF00FF00')
     window.blit(text_surface, (600, 96))
 
+def calculate_pos_x(pos_x):
+    result = (pos_x - camera['pos_x']) * camera['scale'] + pan_offset_x
+    # result = (pos_x * 2) - camera['pos_x'] + pan_offset_x
+    return result
+
+def calculate_pos_y(pos_y):
+    result = (pos_y - camera['pos_y']) * camera['scale'] + pan_offset_y
+    # result = (pos_y * 2) - camera['pos_y'] + pan_offset_y
+    return result
+
 def main_render_map():
-    offset_x = tile['size']
-    offset_y = tile['size']
     for row_i in range(level['rows_num']):
         for col_i in range(level['cols_num']):
             if level['tiles'][row_i][col_i] != None:
-                x = col_i * offset_x + camera['pos_x']
-                y = row_i * offset_y + camera['pos_y']
+                x = calculate_pos_x(tile['size'] * col_i)
+                y = calculate_pos_y(tile['size'] * row_i)
                 window.blit(tile['sprite'], (x, y))
 
 def player_pos_x_get(col_i):
-    x = col_i * tile['size'] + camera['pos_x']
+    x = (col_i * tile['size'] - camera['pos_x']) * camera['scale'] + 100
     return x
 
 def player_pos_y_get(row_i):
@@ -327,8 +330,8 @@ def player_pos_y_get(row_i):
 
 def main_render_player():
     if player['moving'] == False:
-        x = player_pos_x_get(player['col_i'])
-        y = player_pos_y_get(player['row_i'])
+        x = calculate_pos_x(tile['size'] * player['col_i'])
+        y = calculate_pos_y(tile['size'] * player['row_i'])
         window.blit(player['sprite_cur'], (x, y))
     else:
         player_offset_y = int(-tile['size']*0.75)
