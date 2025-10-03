@@ -15,46 +15,6 @@ level = {
     'cols_num': 99,
     'tiles': [],
 }
-
-camera = {
-    'pos_x': 0,
-    'pos_y': 0,
-    'scale': 2,
-}
-
-player = {
-    'row_i': 0,
-    'col_i': 0,
-    'pos_x': 0,
-    'pos_y': 0,
-    'pos_x_start': 0,
-    'pos_y_start': 0,
-    'pos_x_end': 0,
-    'pos_y_end': 0,
-    'sprite_width': 16,
-    'sprite_height': 24,
-    'sprite_1': None,
-    'sprite_2': None,
-    'sprite_3': None,
-    'sprite_4': None,
-    'sprite_5': None,
-    'sprite_6': None,
-    'sprite_7': None,
-    'sprite_8': None,
-    'sprite_cur': None,
-    'sprite_cur_i': 0,
-    'animation': False,
-    'animation_speed': int(300 * 0.55),
-    'animation_last_swap_time': 0,
-    'direction_cur': 'down',
-    'moving': False,
-    'moving_speed': 300,
-}
-player['sprite_width'] = 16 * camera['scale']
-player['sprite_height'] = 16 * camera['scale']
-player['sprite'] = pygame.image.load('assets/sprites/player_1_front_left.png').convert_alpha()
-player['sprite'] = pygame.transform.scale(player['sprite'], (player['sprite_width'], player['sprite_height']))
-
 # level
 for row_i in range(level['rows_num']):
     col = []
@@ -72,17 +32,34 @@ for row_i, row in enumerate(rows):
         else:
             level['tiles'][row_i][col_i] = tile
 
+camera = {
+    'pos_x': 0,
+    'pos_y': 0,
+    'scale': 4,
+}
+
 sprite_pixels = 16
 def entity_create():
     entity = {
         'pos_x': 0,
         'pos_y': 0,
+        'pos_x_start': 0,
+        'pos_y_start': 0,
+        'pos_x_end': 0,
+        'pos_y_end': 0,
         'col_i': 0,
         'row_i': 0,
         'size': sprite_pixels,
         'size_scaled': sprite_pixels,
         'sprite': None,
+        'sprite_up': None,
+        'sprite_down': None,
+        'sprite_left': None,
+        'sprite_right': None,
+        'direction': 'down',
         'moving': False,
+        'moving_speed': 300,
+        'moving_start_time': 300,
     }
     return entity
 
@@ -93,12 +70,85 @@ tile['sprite'] = pygame.transform.scale(tile['sprite'], (tile['size_scaled'], ti
 player = entity_create()
 player['sprite'] = pygame.image.load('assets/sprites/player_1_front_left.png').convert_alpha()
 player['sprite'] = pygame.transform.scale(player['sprite'], (player['size_scaled'], player['size_scaled']))
+player['sprite_up'] = pygame.image.load('assets/sprites/player_1_back_left.png').convert_alpha()
+player['sprite_up'] = pygame.transform.scale(player['sprite_up'], (player['size_scaled'], player['size_scaled']))
+player['sprite_down'] = pygame.image.load('assets/sprites/player_1_front_left.png').convert_alpha()
+player['sprite_down'] = pygame.transform.scale(player['sprite_down'], (player['size_scaled'], player['size_scaled']))
+player['sprite_left'] = pygame.image.load('assets/sprites/player_1_side_left.png').convert_alpha()
+player['sprite_left'] = pygame.transform.scale(player['sprite_left'], (player['size_scaled'], player['size_scaled']))
+player['sprite_right'] = pygame.image.load('assets/sprites/player_1_side_left.png').convert_alpha()
+player['sprite_right'] = pygame.transform.flip(player['sprite_right'], True, False)
+player['sprite_right'] = pygame.transform.scale(player['sprite_right'], (player['size_scaled'], player['size_scaled']))
 
 player_2 = entity_create()
 player_2['sprite'] = pygame.image.load('assets/sprites/player_1_front_left.png').convert_alpha()
 player_2['sprite'] = pygame.transform.scale(player_2['sprite'], (player_2['size_scaled'], player_2['size_scaled']))
 player_2['col_i'] = 2
 player_2['row_i'] = 2
+
+def entity_turn_up():
+    player['direction'] = 'up'
+    player['sprite'] = player['sprite_up']
+
+def entity_turn_down():
+    player['direction'] = 'down'
+    player['sprite'] = player['sprite_down']
+
+def entity_turn_left():
+    player['direction'] = 'left'
+    player['sprite'] = player['sprite_left']
+
+def entity_turn_right():
+    player['direction'] = 'right'
+    player['sprite'] = player['sprite_right']
+
+def entity_move_up():
+    if player['moving'] == False:
+        entity_turn_up()
+        if level['tiles'][player['row_i']-1][player['col_i']] != None:
+            player['moving'] = True
+            player['pos_x_start'] = tile['size'] * player['col_i']
+            player['pos_y_start'] = tile['size'] * player['row_i']
+            player['pos_x_end'] = tile['size'] * player['col_i']
+            player['pos_y_end'] = tile['size'] * (player['row_i'] - 1)
+            player['moving_start_time'] = pygame.time.get_ticks()
+            player['row_i'] -= 1
+
+def entity_move_down():
+    if player['moving'] == False:
+        entity_turn_down()
+        if level['tiles'][player['row_i']+1][player['col_i']] != None:
+            player['moving'] = True
+            player['pos_x_start'] = tile['size'] * player['col_i']
+            player['pos_y_start'] = tile['size'] * player['row_i']
+            player['pos_x_end'] = tile['size'] * player['col_i']
+            player['pos_y_end'] = tile['size'] * (player['row_i'] + 1)
+            player['moving_start_time'] = pygame.time.get_ticks()
+            player['row_i'] += 1
+
+def entity_move_right():
+    if player['moving'] == False:
+        entity_turn_right()
+        if level['tiles'][player['row_i']][player['col_i']+1] != None:
+            player['moving'] = True
+            player['pos_x_start'] = tile['size'] * player['col_i']
+            player['pos_y_start'] = tile['size'] * player['row_i']
+            player['pos_x_end'] = tile['size'] * (player['col_i'] + 1)
+            player['pos_y_end'] = tile['size'] * player['row_i']
+            player['moving_start_time'] = pygame.time.get_ticks()
+            player['col_i'] += 1
+
+def entity_move_left():
+    if player['moving'] == False:
+        entity_turn_left()
+        if level['tiles'][player['row_i']][player['col_i']-1] != None:
+            player['moving'] = True
+            player['pos_x_start'] = tile['size'] * player['col_i']
+            player['pos_y_start'] = tile['size'] * player['row_i']
+            player['pos_x_end'] = tile['size'] * (player['col_i'] - 1)
+            player['pos_y_end'] = tile['size'] * player['row_i']
+            player['moving_start_time'] = pygame.time.get_ticks()
+            player['col_i'] -= 1
 
 def main_input():
     global running
@@ -118,28 +168,13 @@ def main_input():
 
     keys = pygame.key.get_pressed()
     if keys[pygame.K_RIGHT]:
-        if player['moving'] == False:
-            player['moving'] = True
-            player['col_i'] += 1
-            player['pos_x'] = tile['size'] * player['col_i']
+        entity_move_right()
     elif keys[pygame.K_LEFT]:
-        if player['moving'] == False:
-            player['moving'] = True
-            player['col_i'] -= 1
-            player['pos_x'] = tile['size'] * player['col_i']
+        entity_move_left()
     elif keys[pygame.K_DOWN]:
-        if player['moving'] == False:
-            player['moving'] = True
-            player['row_i'] += 1
-            player['pos_y'] = tile['size'] * player['row_i']
+        entity_move_down()
     elif keys[pygame.K_UP]:
-        if player['moving'] == False:
-            player['moving'] = True
-            player['row_i'] -= 1
-            player['pos_y'] = tile['size'] * player['row_i']
-            print(player['pos_x'])
-    else:
-        player['moving'] = False
+        entity_move_up()
 
 def main_update():
     # camera
@@ -156,6 +191,18 @@ def main_update():
     player_2['pos_x'] = player_2['col_i'] * player_2['size']
     player_2['pos_y'] = player_2['row_i'] * player_2['size']
     player_2['sprite'] = pygame.transform.scale(player_2['sprite'], (player_2['size_scaled'], player_2['size_scaled']))
+    # player moving
+    if player['moving']:
+        elapsed = pygame.time.get_ticks() - player['moving_start_time']
+        t = min(elapsed / player['moving_speed'], 1.0)
+        dx = player['pos_x_end'] - player['pos_x_start']
+        dy = player['pos_y_end'] - player['pos_y_start']
+        player['pos_x'] = player['pos_x_start'] + dx * t
+        player['pos_y'] = player['pos_y_start'] + dy * t
+        if t >= 1.0:
+            player['moving'] = False
+            player['animation'] = False
+    clock.tick(60)
 
 def calculate_pos_x(pos_x):
     result = (pos_x - camera['pos_x']) * camera['scale'] + pan_offset_x
@@ -193,9 +240,6 @@ def main_render():
     main_render_map()
     main_render_player()
     main_render_player_2()
-    # main_render_player_reference(100, 100)
-    # main_render_player_reference(-50, -50)
-    # main_render_player_reference(-150, 75)
     pygame.display.flip()
 
 running = True
