@@ -52,10 +52,7 @@ def entity_create():
         'size': sprite_pixels,
         'size_scaled': sprite_pixels,
         'sprite': None,
-        'sprite_up': None,
-        'sprite_down': None,
-        'sprite_left': None,
-        'sprite_right': None,
+        'sprites': [],
         'direction': 'down',
         'moving': False,
         'moving_speed': 300,
@@ -68,17 +65,12 @@ tile['sprite'] = pygame.image.load('assets/top/test-1.png').convert_alpha()
 tile['sprite'] = pygame.transform.scale(tile['sprite'], (tile['size_scaled'], tile['size_scaled']))
 
 player = entity_create()
-player['sprite'] = pygame.image.load('assets/sprites/player_1_front_left.png').convert_alpha()
+spritesheet = pygame.image.load('assets/sprites/cecil.png').convert_alpha()
+for i in range(128//16):
+    frame = spritesheet.subsurface((16 * i, 0, 16, 16))
+    player['sprites'].append(frame)
+player['sprite'] = player['sprites'][0]
 player['sprite'] = pygame.transform.scale(player['sprite'], (player['size_scaled'], player['size_scaled']))
-player['sprite_up'] = pygame.image.load('assets/sprites/player_1_back_left.png').convert_alpha()
-player['sprite_up'] = pygame.transform.scale(player['sprite_up'], (player['size_scaled'], player['size_scaled']))
-player['sprite_down'] = pygame.image.load('assets/sprites/player_1_front_left.png').convert_alpha()
-player['sprite_down'] = pygame.transform.scale(player['sprite_down'], (player['size_scaled'], player['size_scaled']))
-player['sprite_left'] = pygame.image.load('assets/sprites/player_1_side_left.png').convert_alpha()
-player['sprite_left'] = pygame.transform.scale(player['sprite_left'], (player['size_scaled'], player['size_scaled']))
-player['sprite_right'] = pygame.image.load('assets/sprites/player_1_side_left.png').convert_alpha()
-player['sprite_right'] = pygame.transform.flip(player['sprite_right'], True, False)
-player['sprite_right'] = pygame.transform.scale(player['sprite_right'], (player['size_scaled'], player['size_scaled']))
 
 player_2 = entity_create()
 player_2['sprite'] = pygame.image.load('assets/sprites/player_1_front_left.png').convert_alpha()
@@ -88,19 +80,19 @@ player_2['row_i'] = 2
 
 def entity_turn_up():
     player['direction'] = 'up'
-    player['sprite'] = player['sprite_up']
+    player['sprite'] = player['sprites'][4]
 
 def entity_turn_down():
     player['direction'] = 'down'
-    player['sprite'] = player['sprite_down']
+    player['sprite'] = player['sprites'][0]
 
 def entity_turn_left():
     player['direction'] = 'left'
-    player['sprite'] = player['sprite_left']
+    player['sprite'] = player['sprites'][6]
 
 def entity_turn_right():
     player['direction'] = 'right'
-    player['sprite'] = player['sprite_right']
+    player['sprite'] = player['sprites'][2]
 
 def entity_move_up():
     if player['moving'] == False:
